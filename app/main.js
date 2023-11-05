@@ -11,14 +11,17 @@ const checkRequest = (req) => {
   };
 };
 
-const formatBody = (rawBody) => {
+const sendText = (text) => {
   return (
     `HTTP/1.1 200 OK\r\n` +
     `Content-Type: text/plain\r\n` +
-    `Content-Length: ${Buffer.byteLength(rawBody)}\r\n` +
+    `Content-Length: ${Buffer.byteLength(text)}\r\n` +
     `\r\n` +
-    `${rawBody}`
+    `${text}`
   );
+};
+const formatBody = (rawBody) => {
+  return sendText(rawBody.join(" "));
 };
 
 const server = net.createServer((socket) => {
@@ -32,7 +35,8 @@ const server = net.createServer((socket) => {
 
       socket.end();
     } else if (reqInfo.path[1] == "echo") {
-      socket.write(formatBody(reqInfo.path[2]));
+      const response = formatBody(reqInfo.path.slice(2));
+      socket.write(response);
       socket.end();
     } else {
       socket.write("HTTP/1.1 404 NOT FOUND\r\n\r\n");
