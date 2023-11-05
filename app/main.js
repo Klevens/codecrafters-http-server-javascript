@@ -1,13 +1,24 @@
 const net = require("net");
 
 const checkRequest = (req) => {
-  const stringBuffer = req.toString("utf8").split("\n");
-  const startLine = stringBuffer[0].split(" ");
+  const stringBuffer = req.toString("utf8").split("\r\n");
+  const startLine = stringBuffer.shift().split(" ");
+  const headers = {};
+
+  for (let i = 0; i < stringBuffer.length; i++) {
+    const header = stringBuffer[i];
+    if (header == "") {
+      continue;
+    }
+    const [rKey, rValue] = header.split(": ");
+    headers[rKey] = rValue;
+  }
 
   return {
     method: startLine[0],
     path: startLine[1].split("/"),
     version: startLine[2],
+    headers: headers,
   };
 };
 
@@ -28,7 +39,7 @@ const server = net.createServer((socket) => {
   socket.on("data", (req) => {
     const reqInfo = checkRequest(req);
 
-    console.log(reqInfo);
+    // console.log(reqInfo);
 
     if (reqInfo.path[1] == "") {
       socket.write("HTTP/1.1 200 OK\r\n\r\n");
@@ -37,6 +48,9 @@ const server = net.createServer((socket) => {
     } else if (reqInfo.path[1] == "echo") {
       const response = formatBody(reqInfo.path.slice(2));
       socket.write(response);
+      socket.end();
+    } else if (reqInfo.headers.hasOwnProperty('User-Agent')) {
+      socket.write(sendText(reqInfo.headers['User-Agent']));
       socket.end();
     } else {
       socket.write("HTTP/1.1 404 NOT FOUND\r\n\r\n");
