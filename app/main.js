@@ -42,15 +42,16 @@ const server = net.createServer((socket) => {
     // console.log(reqInfo);
 
     if (reqInfo.path[1] == "") {
-      socket.write("HTTP/1.1 200 OK\r\n\r\n");
-
-      socket.end();
+      if (reqInfo.headers.hasOwnProperty("User-Agent")) {
+        socket.write(sendText(reqInfo.headers["User-Agent"]));
+        socket.end();
+      } else {
+        socket.write("HTTP/1.1 200 OK\r\n\r\n");
+        socket.end();
+      }
     } else if (reqInfo.path[1] == "echo") {
       const response = formatBody(reqInfo.path.slice(2));
       socket.write(response);
-      socket.end();
-    } else if (reqInfo.headers.hasOwnProperty('User-Agent')) {
-      socket.write(sendText(reqInfo.headers['User-Agent']));
       socket.end();
     } else {
       socket.write("HTTP/1.1 404 NOT FOUND\r\n\r\n");
