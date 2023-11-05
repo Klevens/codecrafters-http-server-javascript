@@ -21,7 +21,7 @@ const sendText = (text) => {
   );
 };
 const formatBody = (rawBody) => {
-  return sendText(rawBody.join(" "));
+  return sendText(rawBody.join("/"));
 };
 
 const server = net.createServer((socket) => {
