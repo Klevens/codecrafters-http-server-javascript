@@ -103,7 +103,13 @@ const handlePost = async (reqInfo, socket, fileR) => {
     });
   }
 
-  socket.write("HTTP/1.1 201 CREATED\r\n\r\n");
+  socket.write(
+  `HTTP/1.1 201 CREATED\r\n` +
+  `Content-Type: text/plain\r\n` +
+  `Content-Length: ${Buffer.byteLength(content)}\r\n` +
+  `\r\n` +
+  `${content}`
+  );
   socket.end();
 
   //   const bodyData = reqInfo.headers.hasOwnProperty("Content-Length")
