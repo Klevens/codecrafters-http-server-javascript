@@ -1,4 +1,8 @@
 const net = require("net");
+const fs = require("fs");
+const { constants } = require("fs/promises");
+
+const argv = process.argv.slice(2);
 
 const checkRequest = (req) => {
   const stringBuffer = req.toString("utf8").split("\r\n");
@@ -22,30 +26,69 @@ const checkRequest = (req) => {
   };
 };
 
-const sendText = (text) => {
-  return (
-    `HTTP/1.1 200 OK\r\n` +
-    `Content-Type: text/plain\r\n` +
-    `Content-Length: ${Buffer.byteLength(text)}\r\n` +
-    `\r\n` +
-    `${text}`
-  );
+const sendText = (text, status = 200, cType = 'text/plain') => {
+  if (status == 400) {
+    return "HTTP/1.1 404 NOT FOUND\r\n\r\n";
+  } else {
+    return (
+      `HTTP/1.1 200 OK\r\n` +
+      `Content-Type: ${cType}\r\n` +
+      `Content-Length: ${Buffer.byteLength(text)}\r\n` +
+      `\r\n` +
+      `${text}`
+    );
+  }
 };
 const formatBody = (rawBody) => {
   return sendText(rawBody.join("/"));
 };
 
-const server = net.createServer((socket) => {
-  socket.on("data", (req) => {
+const sendFile = async (fileR) => {
+  let klk;
+  if ((argv[0] == "--directory") & (argv[1] !== "")) {
+    const fR = fileR[0];
+    const dirR = argv[1];
+
+    klk = await new Promise((resolve, reject) => {
+      // console.log(`${dirR}${fR}`);
+      fs.access(`${dirR}${fR}`, constants.F_OK, async (err) => {
+        if (err) {
+          const response = sendText("", 400);
+          resolve(response);
+        } else {
+          fs.readFile(`${dirR}${fR}`, "utf8", (err, data) => {
+            if (err) {
+              return;
+            } else {
+            const response = sendText(`${data}`, 200, 'application/octet-stream');
+            resolve(response);
+            }
+          });
+        }
+      });
+    });
+  } else {
+    const response = sendText("", 400);
+    klk = response;
+  }
+
+  return klk;
+};
+
+const server = net.createServer(async (socket) => {
+  socket.on("data", async (req) => {
     const reqInfo = checkRequest(req);
-
-    // console.log(reqInfo);
-
     if (reqInfo.path[1] == "") {
       socket.write("HTTP/1.1 200 OK\r\n\r\n");
       socket.end();
     } else if (reqInfo.path[1] == "echo") {
       const response = formatBody(reqInfo.path.slice(2));
+      socket.write(response);
+      socket.end();
+    } else if (reqInfo.path[1] == "files") {
+      const fileR = reqInfo.path.slice(2);
+      const response = await sendFile(fileR);
+      //socket.write("HTTP/1.1 200 OK\r\n\r\n");
       socket.write(response);
       socket.end();
     } else if (reqInfo.path[1] == "user-agent") {
@@ -63,7 +106,7 @@ const server = net.createServer((socket) => {
   }),
     socket.on("close", () => {
       socket.end();
-     // server.close();
+      // server.close();
     });
 });
 
