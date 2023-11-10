@@ -92,17 +92,22 @@ const handlePost = async (reqInfo, socket, fileR) => {
 
   console.log(content);
 
-  if (argv[0] == "--directory" && argv[1] !== "") {
-    const fR = fileR[0];
-    const dirR = argv[1];
-    fs.writeFile(`${dirR}${fR}`, content, "utf-8", (err) => {
-      if (err) {
-        console.error("Error writing the file:", err);
-      } else {
-        console.log("File created successfully!");
-      }
-    });
-  }
+  await new Promise((resolve, reject) => {
+
+    if (argv[0] == "--directory" && argv[1] !== "") {
+      const fR = fileR[0];
+      const dirR = argv[1];
+      fs.writeFile(`${dirR}${fR}`, content, "utf-8", (err) => {
+        if (err) {
+          resolve('')
+        } else {
+          resolve('')
+        }
+      });
+    }
+
+  })
+
 
   socket.write(
   `HTTP/1.1 201 CREATED\r\n` +
