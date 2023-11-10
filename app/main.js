@@ -83,6 +83,7 @@ const sendFile = async (fileR) => {
 };
 
 const handlePost = async (reqInfo, socket, fileR) => {
+  console.log("Llamada: "+ reqInfo.stringBuffer)
   const emptyIndex = reqInfo.stringBuffer.indexOf("");
   const contentAfterEmpty =
     emptyIndex !== -1 ? reqInfo.stringBuffer.slice(emptyIndex + 1) : [];
