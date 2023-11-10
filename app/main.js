@@ -83,14 +83,14 @@ const sendFile = async (fileR) => {
 };
 
 const handlePost = async (reqInfo, socket, fileR) => {
-  console.log("Llamada: "+ reqInfo.stringBuffer)
+  //console.log("Llamada: "+ reqInfo.stringBuffer)
   const emptyIndex = reqInfo.stringBuffer.indexOf("");
   const contentAfterEmpty =
     emptyIndex !== -1 ? reqInfo.stringBuffer.slice(emptyIndex + 1) : [];
 
   const content = contentAfterEmpty.join("");
 
-  console.log(fileR);
+  console.log(content);
 
   if (argv[0] == "--directory" && argv[1] !== "") {
     const fR = fileR[0];
